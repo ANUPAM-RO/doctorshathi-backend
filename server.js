@@ -28,7 +28,6 @@ app.use("/medicines", medicineRoutes);
 app.use("/search", searchRoutes);
 
 await connectDb(process.env.MONGO_URI);
-
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);
 });
