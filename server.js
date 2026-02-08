@@ -11,9 +11,22 @@ import searchRoutes from "./routes/search.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
-const origin = process.env.CLIENT_ORIGIN || "http://localhost:3000";
+const allowedOrigins = (process.env.CLIENT_ORIGINS || "http://localhost:3000")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 
-app.use(cors({ origin }));
+app.use(
+  cors({
+    origin: (requestOrigin, cb) => {
+      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+        return cb(null, true);
+      }
+
+      return cb(new Error("Not allowed by CORS"));
+    },
+  })
+);
 app.use(express.json());
 
 app.get("/", (_req, res) => {
