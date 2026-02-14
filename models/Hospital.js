@@ -10,7 +10,13 @@ const hospitalSchema = new mongoose.Schema(
     pinCode: { type: String, required: true },
     phone: { type: String },
     email: { type: String },
-    services: [{ type: String }]
+    services: [{ type: String }],
+    opdScheduleText: { type: String },
+    bookingInstructions: [{ type: String }],
+    transportInfo: { type: String },
+    foodInfo: { type: String },
+    stayInfo: { type: String },
+    languageInfo: { type: String }
   },
   { timestamps: true }
 );

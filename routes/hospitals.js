@@ -49,7 +49,15 @@ router.post("/bulk", requireAuth, async (req, res) => {
               pinCode: hospital.pinCode,
               phone: hospital.phone || undefined,
               email: hospital.email || undefined,
-              services
+              services,
+              opdScheduleText: hospital.opdScheduleText || undefined,
+              bookingInstructions: Array.isArray(hospital.bookingInstructions)
+                ? hospital.bookingInstructions
+                : undefined,
+              transportInfo: hospital.transportInfo || undefined,
+              foodInfo: hospital.foodInfo || undefined,
+              stayInfo: hospital.stayInfo || undefined,
+              languageInfo: hospital.languageInfo || undefined
             }
           },
           upsert: true

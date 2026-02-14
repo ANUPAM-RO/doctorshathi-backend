@@ -1,302 +1,513 @@
 export const hospitals = [
   {
-    name: "Apollo Gleneagles Hospital",
-    address: "58, Canal Circular Road, Kolkata",
+    name: "SSKM Hospital (IPGMER, PG Hospital)",
+    address: "244, A.J.C. Bose Road, Kolkata",
     state: "West Bengal",
     district: "Kolkata",
-    citySubdivision: "Kolkata",
-    pinCode: "700054",
-    phone: "+91-33-2320-3040",
-    email: "info.kolkata@apollohospitals.com",
-    services: ["Cardiology", "Neurology", "Oncology", "Orthopedics"]
-  },
-  {
-    name: "AMRI Hospitals Dhakuria",
-    address: "P-4 & 5, Gariahat Road, Dhakuria, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Dhakuria",
-    pinCode: "700029",
-    phone: "+91-33-6680-0000",
-    email: "helpdesk.dhakuria@amrihospitals.in",
-    services: ["Cardiology", "Nephrology", "Gastroenterology"]
-  },
-  {
-    name: "Fortis Hospital Anandapur",
-    address: "730, Anandapur, EM Bypass, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Anandapur",
-    pinCode: "700107",
-    phone: "+91-33-6628-4444",
-    email: "contact@fortishealthcare.com",
-    services: ["Cardiac Surgery", "Neurosciences", "Urology"]
-  },
-  {
-    name: "Medica Superspecialty Hospital",
-    address: "127, Mukundapur, EM Bypass, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Mukundapur",
-    pinCode: "700099",
-    phone: "+91-33-6652-0000",
-    email: "info@medicahospitals.in",
-    services: ["Cardiology", "Oncology", "Critical Care"]
-  },
-  {
-    name: "Peerless Hospital",
-    address: "360, Panchasayar, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Panchasayar",
-    pinCode: "700094",
-    phone: "+91-33-4011-1222",
-    email: "info@peerlesshospital.com",
-    services: ["Orthopedics", "ENT", "General Surgery"]
-  },
-  {
-    name: "Ruby General Hospital",
-    address: "576, Anandapur, EM Bypass, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Anandapur",
-    pinCode: "700107",
-    phone: "+91-33-3987-1800",
-    email: "info@rubyhospital.com",
-    services: ["Cardiology", "Pulmonology", "Diagnostics"]
-  },
-  {
-    name: "BM Birla Heart Research Centre",
-    address: "1/1 National Library Avenue, Alipore, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Alipore",
-    pinCode: "700027",
-    phone: "+91-33-3040-3040",
-    email: "info@birlaheart.org",
-    services: ["Cardiology", "Cardiac Surgery", "Rehabilitation"]
-  },
-  {
-    name: "Desun Hospital and Heart Institute",
-    address: "720, Anandapur, EM Bypass, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Anandapur",
-    pinCode: "700107",
-    phone: "+91-33-6625-0000",
-    email: "info@desunhospital.com",
-    services: ["Emergency", "Cardiology", "Critical Care"]
-  },
-  {
-    name: "KPC Medical College & Hospital",
-    address: "1F, Raja S.C. Mullick Road, Jadavpur, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Jadavpur",
-    pinCode: "700032",
-    phone: "+91-33-3002-0300",
-    email: "info@kpcmedicalcollege.in",
-    services: ["General Medicine", "Pediatrics", "Surgery"]
-  },
-  {
-    name: "Belle Vue Clinic",
-    address: "9, Dr. U.N. Brahmachari Street, Kolkata",
-    state: "West Bengal",
-    district: "Kolkata",
-    citySubdivision: "Ballygunge",
-    pinCode: "700017",
-    phone: "+91-33-2287-2321",
-    email: "info@bellevueclinic.com",
-    services: ["General Surgery", "Orthopedics", "Gynecology"]
+    citySubdivision: "Bhowanipore",
+    pinCode: "700020",
+    phone: "033-2204-1100",
+    services: [
+      "General Medicine",
+      "Cardiology",
+      "ENT",
+      "Gastroenterology",
+      "Nephrology",
+      "Neurology",
+      "Orthopaedics",
+      "Surgery",
+      "Urology",
+      "Gynaecology",
+      "Paediatrics",
+      "Pulmonary Medicine",
+      "Radiotherapy",
+      "Rheumatology",
+      "Skin",
+      "Critical Care"
+    ],
+    opdScheduleText: `OPD LIST:: SSKM HOSPITAL (source: user provided compiled schedule)
+
+ANTENATAL COUNSELLING CLINIC
+Mon: Prof. S.C. Mondal
+Wed/Fri: Dr. Suchandra Mukherjee
+
+ART (IVF/ICSI) CLINIC
+Tue/Thu
+
+CARDIOLOGY
+Mon: Arrhythmia Clinic (Prof. S.C. Mondal, Dr. T.K. Patra)
+Tue: Prof. Dipankar Mukhopadhyay, Dr. Pradip Saha
+Wed: Dr. Asit Das
+Thu: Dr. Saroj Mondal
+Fri: Dr. Pradip Kumar Ghosal
+Sat: Dr. Gourango Sarkar, Dr. T.K. Patra, Dr. Pradip Saha
+
+CLINICAL IMMUNOLOGY & RHEUMATOLOGY
+Tue: Dr. Alakendu Ghosh, Dr. P. Sinha Mahapatra, Dr. Biswadip Ghosh
+
+CTU
+Mon: Dr. Jayita Chakrabarti
+Tue: Dr. Santanu Dutta
+Wed: Dr. Dipayan Ghosh
+Thu: Dr. A. Mondal
+Fri: Dr. Subhendu Shekhar Mahapatra
+Sat: Dr. Shilpa Basu Roy
+
+DIABETES
+Wed: Prof. Subhankar Chowdhury, Prof. Pranab Kumar Sahana, Dr. Rana Bhattacharjee, Dr. Subir Swar
+Thu: Prof. Satinath Mukhopadhyay, Dr. Anirban Sinha, Dr. Dibakar Biswas, Dr. Indira Maisnam
+Sat: Dr. Pradip Mukhopadhyay, Dr. Sujoy Ghosh, Dr. Tapas Chandra Das
+
+ENT
+Mon/Thu: Prof. S. Das unit
+Tue/Fri: Prof. D. Barman unit
+Wed/Sat: Prof. Arunabha Sengupta unit
+
+ENDOCRINOLOGY
+Mon: Dr. Pradip Mukhopadhyay, Dr. Sujoy Ghosh, Dr. Tapas Chandra Das
+Tue: Prof. Satinath Mukhopadhyay, Dr. Anirban Sinha, Dr. Dibakar Biswas
+Fri: Dr. Indira Maisnam, Prof. Subhankar Chowdhury unit
+
+EYE
+Mon: Asst. Prof. A.K. Gupta
+Tue: Asst. Prof. S. Bhattacharya
+Wed: Asso. Prof. S.R. Srivastava
+Thu: Prof. Dr. S. Sarkar (Nag)
+Fri: Asst. Prof. A.K. Gupta, Asst. Prof. S. Bhattacharya
+Sat: Prof. Dr. S. Sarkar (Nag), Asso. Prof. S.R. Srivastava
+
+GASTROENTEROLOGY
+Mon: Dr. Debashis Misra
+Tue: Dr. Rajib Sarkar
+Wed: Dr. Bipul Barman
+Thu: Dr. G.K. Dhali, Dr. Shamik Banerjee, Dr. Kshaunish Das
+Fri: Dr. Partha Sarathi Patra
+Sat: Asso. Prof. Dr. Arka Banerjee
+
+GENERAL
+Mon/Wed/Fri: General medicine units (multiple consultants)
+
+GYNAE & MATERNITY
+Mon: Dr. Subesha Basu Roy, Dr. Biswajit Ghosh
+Tue: Prof. G.S. Kamilya, Dr. Rathindranath Ray
+Wed: Dr. Sumit Ranjan Pramanik, Dr. Dipta Prasun Saha
+Thu: Prof. S.C. Biswas, Asst. Prof. Dr. Rahul Deb Mandal
+Fri: Dr. Anuradha Ghosh
+
+HEPATOLOGY
+Mon: Dr. Moinuddin Ahammed
+Tue: Dr. Abhijit Chowdhury
+Fri: Dr. Kausik Das
+
+MEDICINE
+Mon-Sat: Daily medicine OPD with unit-wise professors/consultants
+
+NEPHROLOGY
+Mon: Prof. (Dr.) A. Roychowdhury
+Wed: Prof. (Dr.) D. Sen
+Fri: Dr. K. Bhattacharjee, Asst. Prof. Dr. A. Pal
+
+NEONATOLOGY MEDICINE
+Mon/Wed/Fri: Dr. S Mukherjee team
+Tue/Thu/Sat: Dr. S Sardar team
+
+ORTHOPAEDIC
+Mon/Thu: Prof. Dr. M. Bhattacharyya unit
+Tue/Fri: Prof. Rana Das unit
+Wed/Sat: Prof. A.K. Pal + Prof. Alok Sovan Datta unit
+
+PAEDIATRIC MEDICINE
+Mon-Sat: Daily consultant rotation
+
+PAEDIATRIC SURGERY
+Mon/Wed/Fri: Unit-1A and Unit-1B rotation
+
+PULMONARY MEDICINE
+Tue/Thu/Sat: Prof. Dr. Amitabha Sengupta unit
+
+RADIOTHERAPY
+Mon-Sat: Daily consultant rotation
+
+RESPIRATORY MEDICINE
+Mon/Wed/Fri: Prof. Dr. Somnath Kundu unit
+
+RHEUMATOLOGY
+Mon/Wed/Fri: Unit-wise rheumatology consultants
+
+SKIN
+Mon-Sat: Alternating consultant units
+
+SURGERY
+Mon-Sat: Daily surgery OPD by unit
+
+SURGICAL ONCOLOGY
+Tue/Fri: Prof. (Dr.) J.K. Jha unit
+
+UROLOGY
+Mon/Wed/Fri: Dr. Sunirmal Choudhury / Dr. Debansu Sarkar / Dr. Dilip Kumar Pal units
+
+Additional listed clinics in source include:
+Colorectal Surgery, Cornea, Critical Care Follow-up, Early Arthritis, Female Urology,
+Pain Medicine Follow-up, G.N. Clinic, Geriatric OPD, Glaucoma, Heart Failure,
+IBD, Interventional GI Radiology, Liver Transplant, Lupus, Mucormycosis Follow-up,
+National Viral Hepatitis Control Programme, Neonatal Surgery, Neuro Ophthalmology,
+Neuro Rehabilitation, Neurodevelopmental, Obesity & Lifestyle, Oculoplasty,
+Paediatric Haemato-Oncology, Paediatric Cardiology, Paediatric Gastroenterology,
+Perioperative Cardiac, Plastic Surgery, Post Transplant, Preconception Care,
+ROP, School of Physical Medicine, Squint/Paed Ophthalmology, Thalassemia,
+Uro-Gynaecology.
+
+Note: This block stores the compiled OPD list exactly as informational schedule text.
+Please verify exact timings/room numbers from the official West Bengal health OPD ticket portal before visit.`,
+    bookingInstructions: [
+      "Visit the official West Bengal Health Department OPD ticket booking portal.",
+      "Choose 'OPD Tickets Booking'.",
+      "Submit a mobile number and verify via OTP.",
+      "Select the hospital from the dropdown list.",
+      "Select date, doctor/department and complete booking."
+    ],
+    transportInfo:
+      "From Sealdah or Howrah, multiple Kolkata bus routes are available toward SSKM/PG Hospital.",
+    foodInfo:
+      "Low-cost food options are commonly available around the hospital campus.",
+    stayInfo:
+      "Waiting areas are available; nearby low-cost lodging options are generally available around the hospital zone.",
+    languageInfo:
+      "Primary language is Bengali; Hindi and English are commonly used for patient communication."
   }
 ];
 
 export const doctors = [
+   // ANTENATAL COUNSELLING
   {
-    name: "Dr. Anirban Sen",
-    specialty: "Cardiology",
-    hospitalName: "Apollo Gleneagles Hospital",
+    name: "Prof. S.C. Mondal",
+    specialty: "Antenatal Counselling / Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10001",
-    email: "anirban.sen@apollohospitals.com",
+    email: "sc.mondal@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Mousumi Banerjee",
-    specialty: "Neurology",
-    hospitalName: "Apollo Gleneagles Hospital",
+    name: "Dr. Suchandra Mukherjee",
+    specialty: "Antenatal Counselling",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10002",
-    email: "mousumi.banerjee@apollohospitals.com",
-    badge: "Walk-in"
+    email: "suchandra.mukherjee@sskmhospital.in",
+    badge: "On-site"
   },
+
+  // CARDIOLOGY
   {
-    name: "Dr. Saptarshi Ghosh",
-    specialty: "Nephrology",
-    hospitalName: "AMRI Hospitals Dhakuria",
+    name: "Prof. Dipankar Mukhopadhyay",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10003",
-    email: "saptarshi.ghosh@amrihospitals.in",
+    email: "dipankar.mukhopadhyay@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Arpita Roy",
-    specialty: "Gastroenterology",
-    hospitalName: "AMRI Hospitals Dhakuria",
+    name: "Dr. T.K. Patra",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10004",
-    email: "arpita.roy@amrihospitals.in",
-    badge: "Tele-consult"
+    email: "tk.patra@sskmhospital.in",
+    badge: "On-site"
   },
   {
-    name: "Dr. Soumyadip Basu",
-    specialty: "Cardiac Surgery",
-    hospitalName: "Fortis Hospital Anandapur",
+    name: "Dr. Pradip Saha",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10005",
-    email: "soumyadip.basu@fortishealthcare.com",
+    email: "pradip.saha@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Debjani Paul",
-    specialty: "Neurosciences",
-    hospitalName: "Fortis Hospital Anandapur",
+    name: "Dr. Asit Das",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10006",
-    email: "debjani.paul@fortishealthcare.com",
-    badge: "Walk-in"
+    email: "asit.das@sskmhospital.in",
+    badge: "On-site"
   },
   {
-    name: "Dr. Indranil Mukherjee",
-    specialty: "Oncology",
-    hospitalName: "Medica Superspecialty Hospital",
+    name: "Dr. Saroj Mondal",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10007",
-    email: "indranil.mukherjee@medicahospitals.in",
+    email: "saroj.mondal@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Rituparna Das",
-    specialty: "Critical Care",
-    hospitalName: "Medica Superspecialty Hospital",
+    name: "Dr. Pradip Kumar Ghosal",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10008",
-    email: "rituparna.das@medicahospitals.in",
+    email: "pradip.ghosal@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Kalyan Naskar",
-    specialty: "Orthopedics",
-    hospitalName: "Peerless Hospital",
+    name: "Dr. Gourango Sarkar",
+    specialty: "Cardiology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10009",
-    email: "kalyan.naskar@peerlesshospital.com",
-    badge: "Walk-in"
+    email: "gourango.sarkar@sskmhospital.in",
+    badge: "On-site"
   },
+
+  // CLINICAL IMMUNOLOGY & RHEUMATOLOGY
   {
-    name: "Dr. Shreya Chatterjee",
-    specialty: "ENT",
-    hospitalName: "Peerless Hospital",
+    name: "Dr. Alakendu Ghosh",
+    specialty: "Clinical Immunology & Rheumatology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10010",
-    email: "shreya.chatterjee@peerlesshospital.com",
-    badge: "Tele-consult"
+    email: "alakendu.ghosh@sskmhospital.in",
+    badge: "On-site"
   },
   {
-    name: "Dr. Kaushik Dutta",
-    specialty: "Pulmonology",
-    hospitalName: "Ruby General Hospital",
+    name: "Dr. P. Sinha Mahapatra",
+    specialty: "Clinical Immunology & Rheumatology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10011",
-    email: "kaushik.dutta@rubyhospital.com",
+    email: "ps.mahapatra@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Shilpa Dey",
-    specialty: "Diagnostics",
-    hospitalName: "Ruby General Hospital",
+    name: "Dr. Biswadip Ghosh",
+    specialty: "Clinical Immunology & Rheumatology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10012",
-    email: "shilpa.dey@rubyhospital.com",
-    badge: "Walk-in"
+    email: "biswadip.ghosh@sskmhospital.in",
+    badge: "On-site"
   },
+
+  // DIABETES & ENDOCRINOLOGY
   {
-    name: "Dr. Arnab Mitra",
-    specialty: "Cardiology",
-    hospitalName: "BM Birla Heart Research Centre",
+    name: "Prof. Subhankar Chowdhury",
+    specialty: "Diabetes & Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10013",
-    email: "arnab.mitra@birlaheart.org",
+    email: "subhankar.chowdhury@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Pallavi Sengupta",
-    specialty: "Cardiac Surgery",
-    hospitalName: "BM Birla Heart Research Centre",
+    name: "Prof. Pranab Kumar Sahana",
+    specialty: "Diabetes",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10014",
-    email: "pallavi.sengupta@birlaheart.org",
+    email: "pranab.sahana@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Tanmoy Roy",
-    specialty: "Emergency Medicine",
-    hospitalName: "Desun Hospital and Heart Institute",
+    name: "Dr. Rana Bhattacharjee",
+    specialty: "Diabetes",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10015",
-    email: "tanmoy.roy@desunhospital.com",
-    badge: "Walk-in"
+    email: "rana.bhattacharjee@sskmhospital.in",
+    badge: "On-site"
   },
   {
-    name: "Dr. Rina Pal",
-    specialty: "Cardiology",
-    hospitalName: "Desun Hospital and Heart Institute",
+    name: "Dr. Subir Swar",
+    specialty: "Diabetes",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10016",
-    email: "rina.pal@desunhospital.com",
+    email: "subir.swar@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Tapan Halder",
-    specialty: "General Medicine",
-    hospitalName: "KPC Medical College & Hospital",
+    name: "Prof. Satinath Mukhopadhyay",
+    specialty: "Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10017",
-    email: "tapan.halder@kpcmedicalcollege.in",
+    email: "satinath.mukhopadhyay@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Sneha Bose",
-    specialty: "Pediatrics",
-    hospitalName: "KPC Medical College & Hospital",
+    name: "Dr. Anirban Sinha",
+    specialty: "Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10018",
-    email: "sneha.bose@kpcmedicalcollege.in",
-    badge: "Walk-in"
-  },
-  {
-    name: "Dr. Sohini Dutta",
-    specialty: "Gynecology",
-    hospitalName: "Belle Vue Clinic",
-    phone: "+91-90000-10019",
-    email: "sohini.dutta@bellevueclinic.com",
+    email: "anirban.sinha@sskmhospital.in",
     badge: "On-site"
   },
   {
-    name: "Dr. Rajat Mallick",
-    specialty: "Orthopedics",
-    hospitalName: "Belle Vue Clinic",
+    name: "Dr. Dibakar Biswas",
+    specialty: "Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10019",
+    email: "dibakar.biswas@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Indira Maisnam",
+    specialty: "Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
     phone: "+91-90000-10020",
-    email: "rajat.mallick@bellevueclinic.com",
-    badge: "Walk-in"
+    email: "indira.maisnam@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Pradip Mukhopadhyay",
+    specialty: "Diabetes & Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10031",
+    email: "pradip.mukhopadhyay@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Sujoy Ghosh",
+    specialty: "Diabetes & Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10032",
+    email: "sujoy.ghosh@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Tapas Chandra Das",
+    specialty: "Diabetes & Endocrinology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10033",
+    email: "tapas.das@sskmhospital.in",
+    badge: "On-site"
+  },
+
+  // HEPATOLOGY
+  {
+    name: "Dr. Moinuddin Ahammed",
+    specialty: "Hepatology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10021",
+    email: "moinuddin.ahammed@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Abhijit Chowdhury",
+    specialty: "Hepatology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10022",
+    email: "abhijit.chowdhury@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Kausik Das",
+    specialty: "Hepatology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10023",
+    email: "kausik.das@sskmhospital.in",
+    badge: "On-site"
+  },
+
+  // NEPHROLOGY
+  {
+    name: "Prof. (Dr.) A. Roychowdhury",
+    specialty: "Nephrology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10024",
+    email: "a.roychowdhury@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Prof. (Dr.) D. Sen",
+    specialty: "Nephrology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10025",
+    email: "d.sen@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. K. Bhattacharjee",
+    specialty: "Nephrology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10026",
+    email: "k.bhattacharjee@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Asst. Prof. Dr. A. Pal",
+    specialty: "Nephrology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10027",
+    email: "a.pal@sskmhospital.in",
+    badge: "On-site"
+  },
+
+  // UROLOGY
+  {
+    name: "Dr. Sunirmal Choudhury",
+    specialty: "Urology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10028",
+    email: "sunirmal.choudhury@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Debansu Sarkar",
+    specialty: "Urology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10029",
+    email: "debansu.sarkar@sskmhospital.in",
+    badge: "On-site"
+  },
+  {
+    name: "Dr. Dilip Kumar Pal",
+    specialty: "Urology",
+    hospitalName: "SSKM Hospital (IPGMER, PG Hospital)",
+    phone: "+91-90000-10030",
+    email: "dilip.pal@sskmhospital.in",
+    badge: "On-site"
   }
+
 ];
 
 export const availability = [
-  { doctorName: "Dr. Anirban Sen", day: "Mon", startTime: "09:00", endTime: "13:00" },
-  { doctorName: "Dr. Anirban Sen", day: "Wed", startTime: "15:00", endTime: "18:00" },
-  { doctorName: "Dr. Mousumi Banerjee", day: "Tue", startTime: "10:00", endTime: "14:00" },
-  { doctorName: "Dr. Mousumi Banerjee", day: "Thu", startTime: "16:00", endTime: "19:00" },
-  { doctorName: "Dr. Saptarshi Ghosh", day: "Mon", startTime: "11:00", endTime: "15:00" },
-  { doctorName: "Dr. Arpita Roy", day: "Fri", startTime: "10:30", endTime: "13:30" },
-  { doctorName: "Dr. Soumyadip Basu", day: "Tue", startTime: "09:00", endTime: "12:00" },
-  { doctorName: "Dr. Debjani Paul", day: "Thu", startTime: "14:00", endTime: "17:30" },
-  { doctorName: "Dr. Indranil Mukherjee", day: "Wed", startTime: "10:00", endTime: "13:00" },
-  { doctorName: "Dr. Rituparna Das", day: "Sat", startTime: "09:30", endTime: "12:30" },
-  { doctorName: "Dr. Kalyan Naskar", day: "Mon", startTime: "15:00", endTime: "18:00" },
-  { doctorName: "Dr. Shreya Chatterjee", day: "Fri", startTime: "16:30", endTime: "19:30" },
-  { doctorName: "Dr. Kaushik Dutta", day: "Tue", startTime: "10:00", endTime: "13:00" },
-  { doctorName: "Dr. Shilpa Dey", day: "Thu", startTime: "11:00", endTime: "14:00" },
-  { doctorName: "Dr. Arnab Mitra", day: "Wed", startTime: "09:00", endTime: "12:00" },
-  { doctorName: "Dr. Pallavi Sengupta", day: "Fri", startTime: "12:00", endTime: "15:30" },
-  { doctorName: "Dr. Tanmoy Roy", day: "Sat", startTime: "12:00", endTime: "16:00" },
-  { doctorName: "Dr. Rina Pal", day: "Tue", startTime: "14:00", endTime: "17:00" },
-  { doctorName: "Dr. Tapan Halder", day: "Mon", startTime: "09:00", endTime: "12:00" },
-  { doctorName: "Dr. Sneha Bose", day: "Wed", startTime: "13:00", endTime: "16:00" },
-  { doctorName: "Dr. Sohini Dutta", day: "Thu", startTime: "10:00", endTime: "13:00" },
-  { doctorName: "Dr. Rajat Mallick", day: "Sat", startTime: "10:00", endTime: "13:00" }
+
+  // ANTENATAL COUNSELLING CLINIC
+  { doctorName: "Prof. S.C. Mondal", day: "Mon", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Suchandra Mukherjee", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Suchandra Mukherjee", day: "Fri", startTime: "09:00", endTime: "13:00" },
+
+  // CARDIOLOGY
+  { doctorName: "Prof. S.C. Mondal", day: "Mon", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. T.K. Patra", day: "Mon", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Prof. Dipankar Mukhopadhyay", day: "Tue", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Pradip Saha", day: "Tue", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Asit Das", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Saroj Mondal", day: "Thu", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Pradip Kumar Ghosal", day: "Fri", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Gourango Sarkar", day: "Sat", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. T.K. Patra", day: "Sat", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Pradip Saha", day: "Sat", startTime: "09:00", endTime: "13:00" },
+
+  // DIABETES
+  { doctorName: "Prof. Subhankar Chowdhury", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Prof. Pranab Kumar Sahana", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Rana Bhattacharjee", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Subir Swar", day: "Wed", startTime: "09:00", endTime: "13:00" },
+
+  { doctorName: "Prof. Satinath Mukhopadhyay", day: "Thu", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Anirban Sinha", day: "Thu", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Dibakar Biswas", day: "Thu", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Indira Maisnam", day: "Thu", startTime: "09:00", endTime: "13:00" },
+
+  { doctorName: "Dr. Pradip Mukhopadhyay", day: "Sat", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Sujoy Ghosh", day: "Sat", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Tapas Chandra Das", day: "Sat", startTime: "09:00", endTime: "13:00" },
+
+  // HEPATOLOGY
+  { doctorName: "Dr. Moinuddin Ahammed", day: "Mon", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Abhijit Chowdhury", day: "Tue", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Kausik Das", day: "Fri", startTime: "09:00", endTime: "13:00" },
+
+  // NEPHROLOGY
+  { doctorName: "Prof. (Dr.) A. Roychowdhury", day: "Mon", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Prof. (Dr.) D. Sen", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. K. Bhattacharjee", day: "Fri", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Asst. Prof. Dr. A. Pal", day: "Fri", startTime: "09:00", endTime: "13:00" },
+
+  // UROLOGY
+  { doctorName: "Dr. Sunirmal Choudhury", day: "Mon", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Sunirmal Choudhury", day: "Wed", startTime: "09:00", endTime: "13:00" },
+  { doctorName: "Dr. Sunirmal Choudhury", day: "Fri", startTime: "09:00", endTime: "13:00" },
+
 ];
 
 export const medicines = [

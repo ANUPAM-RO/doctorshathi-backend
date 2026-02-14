@@ -8,6 +8,9 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const rawQuery = (req.query.q || "").trim();
+    const dayFilter = (req.query.day || "").trim();
+    const doctorFilter = (req.query.doctor || "").trim();
+    const departmentFilter = (req.query.department || "").trim();
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit || "6", 10), 1), 50);
     const skip = (page - 1) * limit;
@@ -19,7 +22,7 @@ router.get("/", async (req, res) => {
       .limit(12);
 
     const hospitalIds = hospitals.map((hospital) => hospital._id);
-    const doctorFilter = regex
+    const baseDoctorFilter = regex
       ? {
           $or: [
             { name: regex },
@@ -29,17 +32,43 @@ router.get("/", async (req, res) => {
         }
       : {};
 
-    const totalDoctors = await Doctor.countDocuments(doctorFilter);
-    const doctors = await Doctor.find(doctorFilter)
+    const baseDoctorIds = await Doctor.distinct("_id", baseDoctorFilter);
+    const weekdayOptions = baseDoctorIds.length
+      ? await Availability.distinct("day", { doctorId: { $in: baseDoctorIds } })
+      : [];
+    const doctorOptions = await Doctor.distinct("name", baseDoctorFilter);
+    const departmentOptions = await Doctor.distinct("specialty", baseDoctorFilter);
+
+    const finalDoctorFilter = {
+      ...baseDoctorFilter
+    };
+
+    if (doctorFilter) {
+      finalDoctorFilter.name = new RegExp(`^${doctorFilter}$`, "i");
+    }
+    if (departmentFilter) {
+      finalDoctorFilter.specialty = new RegExp(`^${departmentFilter}$`, "i");
+    }
+    if (dayFilter) {
+      const dayDoctorIds = await Availability.distinct("doctorId", {
+        day: dayFilter
+      });
+      finalDoctorFilter._id = { $in: dayDoctorIds };
+    }
+
+    const totalDoctors = await Doctor.countDocuments(finalDoctorFilter);
+    const doctors = await Doctor.find(finalDoctorFilter)
       .populate("hospitalId")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
     const doctorIds = doctors.map((doctor) => doctor._id);
-    const availability = await Availability.find({
-      doctorId: { $in: doctorIds }
-    }).sort({ day: 1 });
+    const availability = await Availability.find(
+      dayFilter
+        ? { doctorId: { $in: doctorIds }, day: dayFilter }
+        : { doctorId: { $in: doctorIds } }
+    ).sort({ day: 1 });
 
     const availabilityByDoctor = availability.reduce((acc, slot) => {
       const key = slot.doctorId.toString();
@@ -55,6 +84,16 @@ router.get("/", async (req, res) => {
 
     res.json({
       query: rawQuery,
+      appliedFilters: {
+        day: dayFilter || null,
+        doctor: doctorFilter || null,
+        department: departmentFilter || null
+      },
+      filters: {
+        weekdays: weekdayOptions.sort(),
+        doctors: doctorOptions.sort((a, b) => a.localeCompare(b)),
+        departments: departmentOptions.sort((a, b) => a.localeCompare(b))
+      },
       hospitals,
       doctors: doctorsWithAvailability,
       pagination: {
