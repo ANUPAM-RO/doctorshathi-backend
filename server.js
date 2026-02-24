@@ -8,6 +8,7 @@ import doctorRoutes from "./routes/doctors.js";
 import availabilityRoutes from "./routes/availability.js";
 import medicineRoutes from "./routes/medicines.js";
 import searchRoutes from "./routes/search.js";
+import { apiLimiter, authLimiter } from "./middleware/rateLimit.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -28,12 +29,13 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(apiLimiter);
 
 app.get("/", (_req, res) => {
   res.json({ ok: true, service: "doctorshathi-api" });
 });
 
-app.use("/auth", authRoutes);
+app.use("/auth", authLimiter, authRoutes);
 app.use("/hospitals", hospitalRoutes);
 app.use("/doctors", doctorRoutes);
 app.use("/availability", availabilityRoutes);
