@@ -42,7 +42,21 @@ await Availability.insertMany(
   }))
 );
 
-await Medicine.insertMany(medicines);
+const buildDemoPrice = (index) => {
+  const base = 35;
+  const step = 12;
+  return base + (index % 10) * step;
+};
+
+await Medicine.insertMany(
+  medicines.map((medicine, index) => ({
+    ...medicine,
+    price:
+      typeof medicine.price === "number" && Number.isFinite(medicine.price)
+        ? medicine.price
+        : buildDemoPrice(index)
+  }))
+);
 
 console.log("Seed complete.");
 process.exit(0);
