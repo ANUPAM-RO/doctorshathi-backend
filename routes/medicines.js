@@ -28,6 +28,102 @@ const normalizeStringList = (value) => {
   return value.map((item) => String(item || "").trim()).filter(Boolean);
 };
 
+const normalizeMedicineItems = (items) =>
+  (Array.isArray(items) ? items : [])
+    .map((item) => ({
+      medicineId: String(item?.medicineId || item?.id || item?._id || "").trim(),
+      quantity: Math.max(1, Math.floor(toNumber(item?.quantity, 1)))
+    }))
+    .filter(
+      (item) => item.medicineId && mongoose.isValidObjectId(item.medicineId)
+    );
+
+const mergeCartItems = (items, medicineId, quantity = 1) => {
+  const nextQuantity = Math.max(1, Math.floor(toNumber(quantity, 1)));
+  const existing = items.find((item) => item.medicineId === medicineId);
+
+  if (!existing) {
+    return [...items, { medicineId, quantity: nextQuantity }];
+  }
+
+  return items.map((item) =>
+    item.medicineId === medicineId
+      ? { ...item, quantity: item.quantity + nextQuantity }
+      : item
+  );
+};
+
+const buildCheckoutSummary = async (items) => {
+  const normalizedItems = normalizeMedicineItems(items);
+  if (!normalizedItems.length) {
+    return {
+      ok: false,
+      status: 400,
+      body: { message: "Valid medicine items are required." }
+    };
+  }
+
+  const medicineDocs = await Medicine.find({
+    _id: { $in: normalizedItems.map((item) => item.medicineId) }
+  });
+  const medicineMap = new Map(medicineDocs.map((med) => [String(med._id), med]));
+
+  const checkoutItems = [];
+  let totalAmount = 0;
+  let requiresPrescription = false;
+
+  for (const item of normalizedItems) {
+    const medicine = medicineMap.get(item.medicineId);
+    if (!medicine) {
+      return {
+        ok: false,
+        status: 404,
+        body: { message: `Medicine not found: ${item.medicineId}` }
+      };
+    }
+
+    const unitPrice = toNumber(medicine.price, 0);
+    const stock = Math.max(0, Math.floor(toNumber(medicine.stock, 0)));
+    if (stock > 0 && item.quantity > stock) {
+      return {
+        ok: false,
+        status: 400,
+        body: { message: `Only ${stock} units available for ${medicine.name}.` }
+      };
+    }
+
+    const subtotal = unitPrice * item.quantity;
+    const prescriptionRequired = Boolean(medicine.prescriptionRequired);
+
+    totalAmount += subtotal;
+    requiresPrescription = requiresPrescription || prescriptionRequired;
+
+    checkoutItems.push({
+      medicineId: medicine._id,
+      medicineName: medicine.name,
+      quantity: item.quantity,
+      unitPrice,
+      subtotal,
+      stock,
+      productType: medicine.productType,
+      category: medicine.category,
+      imageUrl: medicine.imageUrl || medicine.images?.[0] || "",
+      prescriptionRequired
+    });
+  }
+
+  return {
+    ok: true,
+    status: 200,
+    body: {
+      items: checkoutItems,
+      totalItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
+      totalAmount,
+      requiresPrescription
+    }
+  };
+};
+
 const generateFallbackPrescriptionHelp = (text) => {
   const lines = [];
   if (!text) {
@@ -160,6 +256,34 @@ router.get("/smart-search", async (req, res) => {
     return res.json({ query: q, medicines });
   } catch (_error) {
     return res.status(500).json({ message: "Smart search failed" });
+  }
+});
+
+router.post("/cart/items", async (req, res) => {
+  try {
+    const summary = await buildCheckoutSummary(req.body?.items);
+    return res.status(summary.status).json(summary.body);
+  } catch (_error) {
+    return res.status(500).json({ message: "Failed to prepare cart items" });
+  }
+});
+
+router.post("/cart/add", async (req, res) => {
+  try {
+    const medicineId = String(req.body?.medicineId || "").trim();
+    if (!medicineId || !mongoose.isValidObjectId(medicineId)) {
+      return res.status(400).json({ message: "Valid medicineId is required." });
+    }
+
+    const nextItems = mergeCartItems(
+      normalizeMedicineItems(req.body?.items),
+      medicineId,
+      req.body?.quantity
+    );
+    const summary = await buildCheckoutSummary(nextItems);
+    return res.status(summary.status).json(summary.body);
+  } catch (_error) {
+    return res.status(500).json({ message: "Failed to add medicine to cart" });
   }
 });
 
@@ -301,51 +425,19 @@ router.post("/orders", async (req, res) => {
       });
     }
 
-    const normalizedItems = items
-      .map((item) => ({
-        medicineId: String(item?.medicineId || "").trim(),
-        quantity: Math.max(1, Math.floor(toNumber(item?.quantity, 1)))
-      }))
-      .filter((item) => item.medicineId && mongoose.isValidObjectId(item.medicineId));
-
-    if (!normalizedItems.length) {
-      return res.status(400).json({ message: "Valid medicine items are required." });
+    const checkoutSummary = await buildCheckoutSummary(items);
+    if (!checkoutSummary.ok) {
+      return res.status(checkoutSummary.status).json(checkoutSummary.body);
     }
-
-    const medicineDocs = await Medicine.find({
-      _id: { $in: normalizedItems.map((item) => item.medicineId) }
-    });
-    const medicineMap = new Map(medicineDocs.map((med) => [String(med._id), med]));
-
-    const orderItems = [];
-    let totalAmount = 0;
-    let requiresPrescription = false;
-
-    for (const item of normalizedItems) {
-      const medicine = medicineMap.get(item.medicineId);
-      if (!medicine) {
-        return res.status(404).json({ message: `Medicine not found: ${item.medicineId}` });
-      }
-
-      const unitPrice = toNumber(medicine.price, 0);
-      const stock = Math.max(0, Math.floor(toNumber(medicine.stock, 0)));
-      if (stock > 0 && item.quantity > stock) {
-        return res.status(400).json({
-          message: `Only ${stock} units available for ${medicine.name}.`
-        });
-      }
-
-      requiresPrescription = requiresPrescription || Boolean(medicine.prescriptionRequired);
-      totalAmount += unitPrice * item.quantity;
-
-      orderItems.push({
-        medicineId: medicine._id,
-        medicineName: medicine.name,
-        quantity: item.quantity,
-        unitPrice,
-        prescriptionRequired: Boolean(medicine.prescriptionRequired)
-      });
-    }
+    const orderItems = checkoutSummary.body.items.map((item) => ({
+      medicineId: item.medicineId,
+      medicineName: item.medicineName,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      prescriptionRequired: item.prescriptionRequired
+    }));
+    const totalAmount = checkoutSummary.body.totalAmount;
+    const requiresPrescription = checkoutSummary.body.requiresPrescription;
 
     let prescriptionId = null;
     if (requiresPrescription) {
