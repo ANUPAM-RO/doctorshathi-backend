@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import Medicine from "../models/Medicine.js";
 import Prescription from "../models/Prescription.js";
 import Order from "../models/Order.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireCustomerAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4.1";
@@ -548,7 +548,7 @@ Return strict JSON with keys: riskLevel ("low"|"moderate"|"high"|"unknown"), war
   }
 });
 
-router.post("/orders", async (req, res) => {
+router.post("/orders", requireCustomerAuth, async (req, res) => {
   try {
     const prepared = await prepareCheckoutOrder(req.body);
     if (!prepared.ok) {
@@ -578,6 +578,7 @@ router.post("/orders", async (req, res) => {
       customerName,
       customerEmail,
       customerPhone,
+      customerId: req.customerId,
       shippingAddress,
       address,
       paymentMethod,
@@ -602,7 +603,7 @@ router.post("/orders", async (req, res) => {
   }
 });
 
-router.post("/orders/razorpay/create", async (req, res) => {
+router.post("/orders/razorpay/create", requireCustomerAuth, async (req, res) => {
   try {
     const prepared = await prepareCheckoutOrder(req.body);
     if (!prepared.ok) {
@@ -632,6 +633,7 @@ router.post("/orders/razorpay/create", async (req, res) => {
       customerName,
       customerEmail,
       customerPhone,
+      customerId: req.customerId,
       shippingAddress,
       address,
       paymentMethod,
@@ -682,7 +684,7 @@ router.post("/orders/razorpay/create", async (req, res) => {
   }
 });
 
-router.post("/orders/razorpay/verify", async (req, res) => {
+router.post("/orders/razorpay/verify", requireCustomerAuth, async (req, res) => {
   try {
     const orderId = String(req.body?.orderId || "").trim();
     const razorpayOrderId = String(req.body?.razorpayOrderId || "").trim();
@@ -704,6 +706,10 @@ router.post("/orders/razorpay/verify", async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
+    }
+
+    if (order.customerId && String(order.customerId) !== String(req.customerId)) {
+      return res.status(403).json({ message: "You cannot verify another customer's order." });
     }
 
     if (order.razorpayOrderId && order.razorpayOrderId !== razorpayOrderId) {
@@ -790,6 +796,38 @@ router.get("/orders", requireAuth, async (_req, res) => {
     return res.json(orders);
   } catch (_error) {
     return res.status(500).json({ message: "Failed to fetch orders" });
+  }
+});
+
+router.get("/customer/orders", requireCustomerAuth, async (req, res) => {
+  try {
+    const orders = await Order.find({ customerId: req.customerId })
+      .populate("prescriptionId")
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
+    return res.json(
+      orders.map((order) => ({
+        id: order._id,
+        customerName: order.customerName,
+        customerEmail: order.customerEmail,
+        customerPhone: order.customerPhone,
+        shippingAddress: order.shippingAddress,
+        address: order.address,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        status: order.status,
+        totalAmount: order.totalAmount,
+        requiresPrescription: order.requiresPrescription,
+        items: order.items,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        razorpayOrderId: order.razorpayOrderId,
+        razorpayPaymentId: order.razorpayPaymentId
+      }))
+    );
+  } catch (_error) {
+    return res.status(500).json({ message: "Failed to fetch customer orders" });
   }
 });
 

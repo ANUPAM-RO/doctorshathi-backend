@@ -20,6 +20,11 @@ const orderSchema = new mongoose.Schema(
     customerName: { type: String, required: true, trim: true },
     customerEmail: { type: String, required: true, trim: true, lowercase: true },
     customerPhone: { type: String, trim: true },
+    customerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Customer",
+      default: null
+    },
     shippingAddress: { type: String, trim: true },
     address: {
       line1: { type: String, trim: true },
