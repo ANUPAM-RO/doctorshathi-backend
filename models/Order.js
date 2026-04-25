@@ -30,8 +30,13 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["cod", "upi", "card"],
+      enum: ["cod", "upi", "card", "razorpay"],
       default: "cod"
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed", "refunded"],
+      default: "pending"
     },
     status: {
       type: String,
@@ -39,6 +44,9 @@ const orderSchema = new mongoose.Schema(
       default: "pending"
     },
     verificationNote: { type: String, trim: true },
+    razorpayOrderId: { type: String, trim: true },
+    razorpayPaymentId: { type: String, trim: true },
+    razorpaySignature: { type: String, trim: true },
     items: { type: [orderItemSchema], validate: (v) => Array.isArray(v) && v.length > 0 },
     totalAmount: { type: Number, min: 0, required: true },
     requiresPrescription: { type: Boolean, default: false },

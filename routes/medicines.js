@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "node:crypto";
 import OpenAI from "openai";
 import mongoose from "mongoose";
 import Medicine from "../models/Medicine.js";
@@ -11,6 +12,9 @@ const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4.1";
 const openaiClient = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || "";
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || "";
+const RAZORPAY_API_BASE = "https://api.razorpay.com/v1";
 
 const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
@@ -120,6 +124,146 @@ const buildCheckoutSummary = async (items) => {
       totalItems: checkoutItems.reduce((sum, item) => sum + item.quantity, 0),
       totalAmount,
       requiresPrescription
+    }
+  };
+};
+
+const createRazorpayGatewayOrder = async ({ amount, receipt, notes }) => {
+  if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+    return {
+      ok: false,
+      status: 500,
+      body: { message: "Razorpay keys are not configured." }
+    };
+  }
+
+  const response = await fetch(`${RAZORPAY_API_BASE}/orders`, {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString(
+        "base64"
+      )}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      amount,
+      currency: "INR",
+      receipt,
+      payment_capture: 1,
+      notes
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status || 500,
+      body: {
+        message: data?.error?.description || data?.error?.reason || "Failed to create Razorpay order."
+      }
+    };
+  }
+
+  return { ok: true, status: 200, body: data };
+};
+
+const verifyRazorpaySignature = ({ orderId, paymentId, signature }) => {
+  if (!RAZORPAY_KEY_SECRET) {
+    return false;
+  }
+
+  const expected = crypto
+    .createHmac("sha256", RAZORPAY_KEY_SECRET)
+    .update(`${orderId}|${paymentId}`)
+  .digest("hex");
+  return expected === signature;
+};
+
+const prepareCheckoutOrder = async (body) => {
+  const customerName = String(body?.customerName || "").trim();
+  const customerEmail = String(body?.customerEmail || "")
+    .trim()
+    .toLowerCase();
+  const customerPhone = String(body?.customerPhone || "").trim();
+  const shippingAddress = String(body?.shippingAddress || "").trim();
+  const address = body?.address || {};
+  const paymentMethod = String(body?.paymentMethod || "cod")
+    .trim()
+    .toLowerCase();
+  const items = Array.isArray(body?.items) ? body.items : [];
+  const prescriptionInput = body?.prescription || null;
+
+  if (!customerName || !customerEmail || !items.length) {
+    return {
+      ok: false,
+      status: 400,
+      body: { message: "customerName, customerEmail and items are required." }
+    };
+  }
+
+  const checkoutSummary = await buildCheckoutSummary(items);
+  if (!checkoutSummary.ok) {
+    return checkoutSummary;
+  }
+
+  const orderItems = checkoutSummary.body.items.map((item) => ({
+    medicineId: item.medicineId,
+    medicineName: item.medicineName,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    prescriptionRequired: item.prescriptionRequired
+  }));
+  const totalAmount = checkoutSummary.body.totalAmount;
+  const requiresPrescription = checkoutSummary.body.requiresPrescription;
+
+  let prescriptionId = null;
+  if (requiresPrescription) {
+    if (!prescriptionInput || !String(prescriptionInput.fileData || "").trim()) {
+      return {
+        ok: false,
+        status: 400,
+        body: {
+          message:
+            "Prescription upload is required for restricted medicines. Include prescription.fileData."
+        }
+      };
+    }
+
+    const prescription = await Prescription.create({
+      patientName: String(prescriptionInput.patientName || customerName).trim(),
+      patientEmail: String(prescriptionInput.patientEmail || customerEmail)
+        .trim()
+        .toLowerCase(),
+      notes: String(prescriptionInput.notes || "").trim(),
+      fileName: String(prescriptionInput.fileName || "").trim(),
+      mimeType: String(prescriptionInput.mimeType || "").trim(),
+      sizeBytes: Math.max(0, Math.floor(toNumber(prescriptionInput.sizeBytes, 0))),
+      fileData: String(prescriptionInput.fileData || "")
+    });
+    prescriptionId = prescription._id;
+  }
+
+  return {
+    ok: true,
+    status: 200,
+    body: {
+      customerName,
+      customerEmail,
+      customerPhone,
+      shippingAddress,
+      address: {
+        line1: String(address.line1 || "").trim(),
+        line2: String(address.line2 || "").trim(),
+        city: String(address.city || "").trim(),
+        state: String(address.state || "").trim(),
+        pincode: String(address.pincode || "").trim()
+      },
+      paymentMethod,
+      orderItems,
+      totalAmount,
+      requiresPrescription,
+      prescriptionId
     }
   };
 };
@@ -406,60 +550,28 @@ Return strict JSON with keys: riskLevel ("low"|"moderate"|"high"|"unknown"), war
 
 router.post("/orders", async (req, res) => {
   try {
-    const customerName = String(req.body?.customerName || "").trim();
-    const customerEmail = String(req.body?.customerEmail || "")
-      .trim()
-      .toLowerCase();
-    const customerPhone = String(req.body?.customerPhone || "").trim();
-    const shippingAddress = String(req.body?.shippingAddress || "").trim();
-    const address = req.body?.address || {};
-    const paymentMethod = String(req.body?.paymentMethod || "cod")
-      .trim()
-      .toLowerCase();
-    const items = Array.isArray(req.body?.items) ? req.body.items : [];
-    const prescriptionInput = req.body?.prescription || null;
+    const prepared = await prepareCheckoutOrder(req.body);
+    if (!prepared.ok) {
+      return res.status(prepared.status).json(prepared.body);
+    }
 
-    if (!customerName || !customerEmail || !items.length) {
+    const {
+      customerName,
+      customerEmail,
+      customerPhone,
+      shippingAddress,
+      address,
+      paymentMethod,
+      orderItems,
+      totalAmount,
+      requiresPrescription,
+      prescriptionId
+    } = prepared.body;
+
+    if (!["cod", "upi", "card"].includes(paymentMethod)) {
       return res.status(400).json({
-        message: "customerName, customerEmail and items are required."
+        message: "Manual order creation only supports cod, upi, or card."
       });
-    }
-
-    const checkoutSummary = await buildCheckoutSummary(items);
-    if (!checkoutSummary.ok) {
-      return res.status(checkoutSummary.status).json(checkoutSummary.body);
-    }
-    const orderItems = checkoutSummary.body.items.map((item) => ({
-      medicineId: item.medicineId,
-      medicineName: item.medicineName,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      prescriptionRequired: item.prescriptionRequired
-    }));
-    const totalAmount = checkoutSummary.body.totalAmount;
-    const requiresPrescription = checkoutSummary.body.requiresPrescription;
-
-    let prescriptionId = null;
-    if (requiresPrescription) {
-      if (!prescriptionInput || !String(prescriptionInput.fileData || "").trim()) {
-        return res.status(400).json({
-          message:
-            "Prescription upload is required for restricted medicines. Include prescription.fileData."
-        });
-      }
-
-      const prescription = await Prescription.create({
-        patientName: String(prescriptionInput.patientName || customerName).trim(),
-        patientEmail: String(prescriptionInput.patientEmail || customerEmail)
-          .trim()
-          .toLowerCase(),
-        notes: String(prescriptionInput.notes || "").trim(),
-        fileName: String(prescriptionInput.fileName || "").trim(),
-        mimeType: String(prescriptionInput.mimeType || "").trim(),
-        sizeBytes: Math.max(0, Math.floor(toNumber(prescriptionInput.sizeBytes, 0))),
-        fileData: String(prescriptionInput.fileData || "")
-      });
-      prescriptionId = prescription._id;
     }
 
     const order = await Order.create({
@@ -467,16 +579,9 @@ router.post("/orders", async (req, res) => {
       customerEmail,
       customerPhone,
       shippingAddress,
-      address: {
-        line1: String(address.line1 || "").trim(),
-        line2: String(address.line2 || "").trim(),
-        city: String(address.city || "").trim(),
-        state: String(address.state || "").trim(),
-        pincode: String(address.pincode || "").trim()
-      },
-      paymentMethod: ["cod", "upi", "card"].includes(paymentMethod)
-        ? paymentMethod
-        : "cod",
+      address,
+      paymentMethod,
+      paymentStatus: "pending",
       status: requiresPrescription ? "pending" : "approved",
       items: orderItems,
       totalAmount,
@@ -489,10 +594,157 @@ router.post("/orders", async (req, res) => {
       status: order.status,
       totalAmount: order.totalAmount,
       requiresPrescription: order.requiresPrescription,
-      paymentMethod: order.paymentMethod
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus
     });
   } catch (_error) {
     return res.status(500).json({ message: "Failed to create order" });
+  }
+});
+
+router.post("/orders/razorpay/create", async (req, res) => {
+  try {
+    const prepared = await prepareCheckoutOrder(req.body);
+    if (!prepared.ok) {
+      return res.status(prepared.status).json(prepared.body);
+    }
+
+    const {
+      customerName,
+      customerEmail,
+      customerPhone,
+      shippingAddress,
+      address,
+      paymentMethod,
+      orderItems,
+      totalAmount,
+      requiresPrescription,
+      prescriptionId
+    } = prepared.body;
+
+    if (!["upi", "razorpay"].includes(paymentMethod)) {
+      return res.status(400).json({
+        message: "Razorpay checkout is only for upi or razorpay payment methods."
+      });
+    }
+
+    const localOrder = await Order.create({
+      customerName,
+      customerEmail,
+      customerPhone,
+      shippingAddress,
+      address,
+      paymentMethod,
+      paymentStatus: "pending",
+      status: "pending",
+      items: orderItems,
+      totalAmount,
+      requiresPrescription,
+      prescriptionId
+    });
+
+    const gatewayOrder = await createRazorpayGatewayOrder({
+      amount: Math.round(totalAmount * 100),
+      receipt: `order_${String(localOrder._id)}`,
+      notes: {
+        localOrderId: String(localOrder._id),
+        customerEmail,
+        customerName,
+        paymentMethod,
+        requiresPrescription: String(requiresPrescription)
+      }
+    });
+
+    if (!gatewayOrder.ok) {
+      await Order.findByIdAndUpdate(localOrder._id, {
+        paymentStatus: "failed",
+        verificationNote: gatewayOrder.body?.message || "Failed to create Razorpay order."
+      });
+      return res.status(gatewayOrder.status).json(gatewayOrder.body);
+    }
+
+    await Order.findByIdAndUpdate(localOrder._id, {
+      razorpayOrderId: gatewayOrder.body.id
+    });
+
+    return res.status(201).json({
+      orderId: localOrder._id,
+      razorpayOrderId: gatewayOrder.body.id,
+      razorpayKeyId: RAZORPAY_KEY_ID,
+      amount: totalAmount,
+      currency: gatewayOrder.body.currency || "INR",
+      status: localOrder.status,
+      paymentStatus: "pending",
+      paymentMethod: localOrder.paymentMethod
+    });
+  } catch (_error) {
+    return res.status(500).json({ message: "Failed to initialize Razorpay checkout" });
+  }
+});
+
+router.post("/orders/razorpay/verify", async (req, res) => {
+  try {
+    const orderId = String(req.body?.orderId || "").trim();
+    const razorpayOrderId = String(req.body?.razorpayOrderId || "").trim();
+    const razorpayPaymentId = String(req.body?.razorpayPaymentId || "").trim();
+    const razorpaySignature = String(req.body?.razorpaySignature || "").trim();
+
+    if (
+      !orderId ||
+      !mongoose.isValidObjectId(orderId) ||
+      !razorpayOrderId ||
+      !razorpayPaymentId ||
+      !razorpaySignature
+    ) {
+      return res.status(400).json({
+        message: "orderId, razorpayOrderId, razorpayPaymentId and razorpaySignature are required."
+      });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    if (order.razorpayOrderId && order.razorpayOrderId !== razorpayOrderId) {
+      return res.status(400).json({ message: "Razorpay order id does not match." });
+    }
+
+    const validSignature = verifyRazorpaySignature({
+      orderId: razorpayOrderId,
+      paymentId: razorpayPaymentId,
+      signature: razorpaySignature
+    });
+
+    if (!validSignature) {
+      await Order.findByIdAndUpdate(orderId, {
+        paymentStatus: "failed",
+        verificationNote: "Razorpay signature verification failed."
+      });
+      return res.status(400).json({ message: "Payment verification failed." });
+    }
+
+    const updated = await Order.findByIdAndUpdate(
+      orderId,
+      {
+        paymentStatus: "paid",
+        status: order.requiresPrescription ? "pending" : "approved",
+        razorpayOrderId,
+        razorpayPaymentId,
+        razorpaySignature
+      },
+      { new: true }
+    );
+
+    return res.json({
+      orderId: updated._id,
+      status: updated.status,
+      paymentStatus: updated.paymentStatus,
+      paymentMethod: updated.paymentMethod,
+      razorpayPaymentId: updated.razorpayPaymentId
+    });
+  } catch (_error) {
+    return res.status(500).json({ message: "Failed to verify Razorpay payment" });
   }
 });
 
@@ -517,6 +769,9 @@ router.get("/orders/track", async (req, res) => {
       status: order.status,
       totalAmount: order.totalAmount,
       paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      razorpayOrderId: order.razorpayOrderId,
+      razorpayPaymentId: order.razorpayPaymentId,
       requiresPrescription: order.requiresPrescription,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
