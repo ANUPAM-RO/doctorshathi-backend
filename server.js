@@ -1,7 +1,9 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import bcrypt from "bcryptjs";
 import { connectDb } from "./config/db.js";
+import Admin from "./models/Admin.js";
 import authRoutes from "./routes/auth.js";
 import hospitalRoutes from "./routes/hospitals.js";
 import doctorRoutes from "./routes/doctors.js";
@@ -56,6 +58,23 @@ app.use((error, _req, res, _next) => {
 });
 
 await connectDb(process.env.MONGO_URI);
+
+// Seed initial admin from environment variables
+const seedInitialAdmin = async () => {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) return;
+
+  const existing = await Admin.findOne({ email: adminEmail.toLowerCase() });
+  if (existing) return;
+
+  const passwordHash = await bcrypt.hash(adminPassword, 12);
+  await Admin.create({ email: adminEmail.toLowerCase(), passwordHash, role: "superadmin" });
+  console.log(`Initial admin created: ${adminEmail}`);
+};
+
+await seedInitialAdmin();
+
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);
 });

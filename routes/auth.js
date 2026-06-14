@@ -260,4 +260,147 @@ router.post("/customer/logout", async (_req, res) => {
   return res.json({ ok: true });
 });
 
+// Admin user management routes
+const verifyAdmin = async (req, res, next) => {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) {
+    return res.status(401).json({ message: "Missing token" });
+  }
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.adminId = payload.sub;
+    next();
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+router.get("/users", verifyAdmin, async (req, res) => {
+  try {
+    const admins = await Admin.find().select("email role createdAt").lean();
+    const customers = await Customer.find().select("name email phone createdAt").lean();
+    return res.json({
+      admins: admins.map(a => ({
+        _id: a._id,
+        email: a.email,
+        role: a.role || "admin",
+        createdAt: a.createdAt,
+        type: "admin"
+      })),
+      customers: customers.map(c => ({
+        _id: c._id,
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        createdAt: c.createdAt,
+        type: "customer"
+      }))
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to fetch users" });
+  }
+});
+
+router.post("/users", verifyAdmin, async (req, res) => {
+  try {
+    const { email, password, role } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    const existing = await Admin.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ message: "Admin already exists" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const admin = await Admin.create({ email, passwordHash, role: role || "admin" });
+    return res.status(201).json({ id: admin._id, email: admin.email, role: admin.role });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to create admin user" });
+  }
+});
+
+router.delete("/users/:id", verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (id === req.adminId) {
+      return res.status(400).json({ message: "Cannot delete yourself" });
+    }
+
+    let deleted = await Admin.findByIdAndDelete(id);
+    if (deleted) {
+      return res.json({ message: "Admin user deleted", type: "admin" });
+    }
+
+    deleted = await Customer.findByIdAndDelete(id);
+    if (deleted) {
+      return res.json({ message: "Customer deleted", type: "customer" });
+    }
+
+    return res.status(404).json({ message: "User not found" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete user" });
+  }
+});
+
+router.post("/users/bulk", verifyAdmin, async (req, res) => {
+  try {
+    const { items } = req.body || {};
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ message: "Items array required" });
+    }
+
+    const results = { created: 0, skipped: 0, errors: [] };
+    for (const item of items) {
+      try {
+        const { email, password, role, type } = item;
+        if (!email || !password) {
+          results.errors.push({ email, error: "Missing email or password" });
+          results.skipped++;
+          continue;
+        }
+
+        if (type === "customer") {
+          const existing = await Customer.findOne({ email });
+          if (existing) {
+            results.skipped++;
+            continue;
+          }
+          const passwordHash = await bcrypt.hash(password, 12);
+          await Customer.create({
+            name: item.name || email.split("@")[0],
+            email,
+            phone: item.phone || "",
+            passwordHash
+          });
+          results.created++;
+        } else {
+          const existing = await Admin.findOne({ email });
+          if (existing) {
+            results.skipped++;
+            continue;
+          }
+          const passwordHash = await bcrypt.hash(password, 12);
+          await Admin.create({ email, passwordHash, role: role || "admin" });
+          results.created++;
+        }
+      } catch (err) {
+        results.errors.push({ email: item.email, error: err.message });
+        results.skipped++;
+      }
+    }
+
+    return res.json({ message: "Bulk upload complete", ...results });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to bulk upload users" });
+  }
+});
+
 export default router;
