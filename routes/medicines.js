@@ -168,16 +168,16 @@ const createRazorpayGatewayOrder = async ({ amount, receipt, notes }) => {
   return { ok: true, status: 200, body: data };
 };
 
-const verifyRazorpaySignature = ({ orderId, paymentId, signature }) => {
+const verifyRazorpaySignature = ({ razorpayOrderId, razorpayPaymentId, razorpaySignature }) => {
   if (!RAZORPAY_KEY_SECRET) {
     return false;
   }
 
   const expected = crypto
     .createHmac("sha256", RAZORPAY_KEY_SECRET)
-    .update(`${orderId}|${paymentId}`)
-  .digest("hex");
-  return expected === signature;
+    .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+    .digest("hex");
+  return expected === razorpaySignature;
 };
 
 const prepareCheckoutOrder = async (body) => {
@@ -309,15 +309,17 @@ const parseLlmJson = (content) => {
   }
 };
 
+const sanitizeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 router.get("/", async (req, res) => {
   const q = String(req.query.q || "").trim();
   const filter = q
     ? {
         $or: [
-          { name: new RegExp(q, "i") },
-          { category: new RegExp(q, "i") },
-          { description: new RegExp(q, "i") },
-          { dosage: new RegExp(q, "i") }
+          { name: new RegExp(sanitizeRegex(q), "i") },
+          { category: new RegExp(sanitizeRegex(q), "i") },
+          { description: new RegExp(sanitizeRegex(q), "i") },
+          { dosage: new RegExp(sanitizeRegex(q), "i") }
         ]
       }
     : {};
@@ -391,9 +393,9 @@ router.get("/smart-search", async (req, res) => {
 
     const match = {
       $or: [
-        { name: new RegExp(q, "i") },
-        { category: new RegExp(q, "i") },
-        { description: new RegExp(q, "i") }
+        { name: new RegExp(sanitizeRegex(q), "i") },
+        { category: new RegExp(sanitizeRegex(q), "i") },
+        { description: new RegExp(sanitizeRegex(q), "i") }
       ]
     };
     const medicines = await Medicine.find(match).limit(12).sort({ stock: -1, createdAt: -1 });
@@ -717,9 +719,9 @@ router.post("/orders/razorpay/verify", requireCustomerAuth, async (req, res) => 
     }
 
     const validSignature = verifyRazorpaySignature({
-      orderId: razorpayOrderId,
-      paymentId: razorpayPaymentId,
-      signature: razorpaySignature
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature
     });
 
     if (!validSignature) {

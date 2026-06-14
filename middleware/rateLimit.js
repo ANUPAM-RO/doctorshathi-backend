@@ -1,11 +1,11 @@
 import rateLimit from "express-rate-limit";
 
-const apiWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 1 * 60 * 1000);
+const apiWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
 const apiMax = Number(process.env.RATE_LIMIT_MAX || 100);
 const authWindowMs = Number(
-  process.env.AUTH_RATE_LIMIT_WINDOW_MS || 1 * 60 * 1000
+  process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000
 );
-const authMax = Number(process.env.AUTH_RATE_LIMIT_MAX || 50);
+const authMax = Number(process.env.AUTH_RATE_LIMIT_MAX || 10);
 
 const baseOptions = {
   standardHeaders: true,

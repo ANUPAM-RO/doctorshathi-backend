@@ -14,6 +14,16 @@ const cookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000
 };
 
+const validatePassword = (password) => {
+  if (typeof password !== "string" || password.length < 6) {
+    return "Password must be at least 6 characters.";
+  }
+  if (password.length > 128) {
+    return "Password must be less than 128 characters.";
+  }
+  return null;
+};
+
 const mapCustomer = (customer) => ({
   id: customer._id,
   name: customer.name,
@@ -27,6 +37,11 @@ router.post("/register", async (req, res) => {
     const { email, password } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password required" });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
     }
 
     const existing = await Admin.findOne({ email });
@@ -78,6 +93,11 @@ router.post("/customer/register", async (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email and password required." });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
     }
 
     const existing = await Customer.findOne({ email });

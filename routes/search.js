@@ -5,6 +5,8 @@ import Availability from "../models/Availability.js";
 
 const router = express.Router();
 
+const sanitizeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 router.get("/", async (req, res) => {
   try {
     const rawQuery = (req.query.q || "").trim();
@@ -14,7 +16,7 @@ router.get("/", async (req, res) => {
     const page = Math.max(parseInt(req.query.page || "1", 10), 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit || "6", 10), 1), 50);
     const skip = (page - 1) * limit;
-    const regex = rawQuery ? new RegExp(rawQuery, "i") : null;
+    const regex = rawQuery ? new RegExp(sanitizeRegex(rawQuery), "i") : null;
 
     const hospitalFilter = regex ? { name: regex } : {};
     const hospitals = await Hospital.find(hospitalFilter)

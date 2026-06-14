@@ -46,6 +46,15 @@ app.use("/availability", availabilityRoutes);
 app.use("/medicines", medicineRoutes);
 app.use("/search", searchRoutes);
 
+app.use((_req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+app.use((error, _req, res, _next) => {
+  console.error("Unhandled error:", error?.message || error);
+  res.status(500).json({ message: "Internal server error" });
+});
+
 await connectDb(process.env.MONGO_URI);
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);

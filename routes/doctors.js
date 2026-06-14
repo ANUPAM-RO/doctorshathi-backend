@@ -5,11 +5,23 @@ import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", async (_req, res) => {
-  const doctors = await Doctor.find().populate("hospitalId").sort({
-    createdAt: -1
+router.get("/", async (req, res) => {
+  const page = Math.max(parseInt(req.query.page || "1", 10), 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit || "50", 10), 1), 200);
+  const skip = (page - 1) * limit;
+
+  const total = await Doctor.countDocuments();
+  const doctors = await Doctor.find().populate("hospitalId").sort({ createdAt: -1 }).skip(skip).limit(limit);
+
+  res.json({
+    doctors,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1
+    }
   });
-  res.json(doctors);
 });
 
 router.post("/", requireAuth, async (req, res) => {
