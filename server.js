@@ -59,18 +59,27 @@ app.use((error, _req, res, _next) => {
 
 await connectDb(process.env.MONGO_URI);
 
-// Seed initial admin from environment variables
+// The admin in ADMIN_EMAIL / ADMIN_PASSWORD is created on first start, and its
+// password is re-synced whenever ADMIN_PASSWORD in .env changes.
 const seedInitialAdmin = async () => {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const adminPassword = String(process.env.ADMIN_PASSWORD || "");
   if (!adminEmail || !adminPassword) return;
 
-  const existing = await Admin.findOne({ email: adminEmail.toLowerCase() });
-  if (existing) return;
+  const existing = await Admin.findOne({ email: adminEmail });
+  if (!existing) {
+    const passwordHash = await bcrypt.hash(adminPassword, 12);
+    await Admin.create({ email: adminEmail, passwordHash, role: "superadmin" });
+    console.log(`Initial admin created: ${adminEmail}`);
+    return;
+  }
 
-  const passwordHash = await bcrypt.hash(adminPassword, 12);
-  await Admin.create({ email: adminEmail.toLowerCase(), passwordHash, role: "superadmin" });
-  console.log(`Initial admin created: ${adminEmail}`);
+  const matches = existing.passwordHash && (await bcrypt.compare(adminPassword, existing.passwordHash));
+  if (!matches) {
+    existing.passwordHash = await bcrypt.hash(adminPassword, 12);
+    await existing.save();
+    console.log(`Admin password updated from .env for: ${adminEmail}`);
+  }
 };
 
 await seedInitialAdmin();

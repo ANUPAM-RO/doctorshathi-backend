@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import Customer from "../models/Customer.js";
 
 const parseCookieHeader = (cookieHeader = "") =>
   cookieHeader.split(";").reduce((acc, part) => {
@@ -38,22 +39,36 @@ export function requireAuth(req, res, next) {
   }
 }
 
-export function requireCustomerAuth(req, res, next) {
+export async function requireCustomerAuth(req, res, next) {
   const token = getTokenFromRequest(req, "ds_customer_token");
 
   if (!token) {
     return res.status(401).json({ message: "Missing token" });
   }
 
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    if (payload?.role !== "customer") {
-      return res.status(401).json({ message: "Invalid token" });
-    }
-
-    req.customerId = payload.sub;
-    next();
+    payload = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ message: "Invalid token" });
   }
+  if (payload?.role !== "customer") {
+    return res.status(401).json({ message: "Invalid token" });
+  }
+
+  try {
+    // Reject sessions created before the last password change / reset.
+    const customer = await Customer.findById(payload.sub).select("passwordChangedAt").lean();
+    if (!customer) {
+      return res.status(401).json({ message: "Account not found" });
+    }
+    if (customer.passwordChangedAt && payload.iat * 1000 < new Date(customer.passwordChangedAt).getTime() - 1000) {
+      return res.status(401).json({ message: "Session expired. Please sign in again." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to verify session" });
+  }
+
+  req.customerId = payload.sub;
+  next();
 }

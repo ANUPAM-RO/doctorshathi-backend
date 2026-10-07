@@ -17,6 +17,7 @@ const medicineSchema = new mongoose.Schema(
     highlights: { type: [String], default: [] },
     details: { type: String },
     price: { type: Number, min: 0, default: 0 },
+    mrp: { type: Number, min: 0 },
     stock: { type: Number, min: 0, default: 0 },
     prescriptionRequired: { type: Boolean, default: false }
   },

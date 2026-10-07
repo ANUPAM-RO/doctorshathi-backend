@@ -27,11 +27,15 @@ const orderSchema = new mongoose.Schema(
     },
     shippingAddress: { type: String, trim: true },
     address: {
+      label: { type: String, trim: true },
+      fullName: { type: String, trim: true },
+      phone: { type: String, trim: true },
       line1: { type: String, trim: true },
       line2: { type: String, trim: true },
       city: { type: String, trim: true },
       state: { type: String, trim: true },
-      pincode: { type: String, trim: true }
+      pincode: { type: String, trim: true },
+      landmark: { type: String, trim: true }
     },
     paymentMethod: {
       type: String,
@@ -53,7 +57,10 @@ const orderSchema = new mongoose.Schema(
     razorpayPaymentId: { type: String, trim: true },
     razorpaySignature: { type: String, trim: true },
     items: { type: [orderItemSchema], validate: (v) => Array.isArray(v) && v.length > 0 },
+    itemsTotal: { type: Number, min: 0 },
+    deliveryFee: { type: Number, min: 0, default: 0 },
     totalAmount: { type: Number, min: 0, required: true },
+    stockDeducted: { type: Boolean, default: false },
     requiresPrescription: { type: Boolean, default: false },
     prescriptionId: {
       type: mongoose.Schema.Types.ObjectId,
