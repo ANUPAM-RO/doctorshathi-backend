@@ -9,10 +9,13 @@ import { sendMail } from "../config/mailer.js";
 
 const router = express.Router();
 const CUSTOMER_COOKIE_NAME = "ds_customer_token";
+const isProduction = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+// In production the frontend may call the API from another site (e.g. a different
+// *.vercel.app subdomain), and browsers only send cross-site cookies marked None + Secure.
 const cookieOptions = {
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  sameSite: isProduction ? "none" : "lax",
+  secure: isProduction,
   path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000
 };
