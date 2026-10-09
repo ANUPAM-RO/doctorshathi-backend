@@ -41,7 +41,21 @@ app.get("/", (_req, res) => {
   res.json({ ok: true, service: "doctorshathi-api" });
 });
 
-app.use("/auth", authLimiter, authRoutes);
+// Brute-force protection only for endpoints that take credentials; session
+// checks like GET /auth/customer/me run on every page load and must not count.
+app.use(
+  [
+    "/auth/login",
+    "/auth/register",
+    "/auth/customer/login",
+    "/auth/customer/register",
+    "/auth/customer/password",
+    "/auth/customer/forgot-password",
+    "/auth/customer/reset-password",
+  ],
+  authLimiter
+);
+app.use("/auth", authRoutes);
 app.use("/hospitals", hospitalRoutes);
 app.use("/doctors", doctorRoutes);
 app.use("/availability", availabilityRoutes);

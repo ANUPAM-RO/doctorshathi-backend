@@ -23,5 +23,7 @@ export const authLimiter = rateLimit({
   ...baseOptions,
   windowMs: authWindowMs,
   max: authMax,
+  // Only failed attempts (4xx/5xx) count toward the limit.
+  skipSuccessfulRequests: true,
   message: { message: "Too many auth attempts, please try again later." },
 });

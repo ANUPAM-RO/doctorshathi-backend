@@ -18,6 +18,8 @@ const RAZORPAY_API_BASE = "https://api.razorpay.com/v1";
 // Delivery is free unless DELIVERY_FEE is set; FREE_DELIVERY_ABOVE waives it for larger carts.
 const DELIVERY_FEE = Math.max(0, Number(process.env.DELIVERY_FEE) || 0);
 const FREE_DELIVERY_ABOVE = Math.max(0, Number(process.env.FREE_DELIVERY_ABOVE) || 0);
+// Rx carts whose item total is below this amount can be ordered without a prescription upload.
+const PRESCRIPTION_REQUIRED_FROM = Math.max(0, Number(process.env.PRESCRIPTION_REQUIRED_FROM ?? 500) || 0);
 
 const toNumber = (value, fallback = 0) => {
   const parsed = Number(value);
@@ -172,6 +174,7 @@ const buildCheckoutSummary = async (items, { strict = true } = {}) => {
   itemsTotal = roundMoney(itemsTotal);
   mrpTotal = roundMoney(mrpTotal);
   const deliveryFee = computeDeliveryFee(itemsTotal);
+  if (itemsTotal < PRESCRIPTION_REQUIRED_FROM) requiresPrescription = false;
 
   return {
     ok: true,
@@ -1028,13 +1031,29 @@ router.get("/orders/track", async (req, res) => {
 
 router.get("/orders", requireAuth, async (_req, res) => {
   try {
+    // The prescription file itself is fetched on demand; it can be several MB per order.
     const orders = await Order.find()
-      .populate("prescriptionId")
+      .populate("prescriptionId", "-fileData")
       .sort({ createdAt: -1 })
       .limit(200);
     return res.json(orders);
   } catch (_error) {
     return res.status(500).json({ message: "Failed to fetch orders" });
+  }
+});
+
+router.get("/orders/:id/prescription", requireAuth, async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).select("prescriptionId").populate("prescriptionId");
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    if (!order.prescriptionId) {
+      return res.status(404).json({ message: "No prescription uploaded for this order." });
+    }
+    return res.json(order.prescriptionId);
+  } catch (_error) {
+    return res.status(500).json({ message: "Failed to load prescription" });
   }
 });
 
@@ -1116,6 +1135,10 @@ router.patch("/orders/:id/status", requireAuth, async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) {
       return res.status(404).json({ message: "Order not found." });
+    }
+    // Shipping requires a confirmed order, so Rx orders can't skip prescription review.
+    if (status === "shipped" && order.status !== "approved") {
+      return res.status(400).json({ message: "Only confirmed orders can be marked as shipped." });
     }
 
     const releaseStock = status === "rejected" && order.stockDeducted;
