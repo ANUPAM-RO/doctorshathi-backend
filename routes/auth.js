@@ -6,6 +6,7 @@ import Admin from "../models/Admin.js";
 import Customer from "../models/Customer.js";
 import { requireCustomerAuth } from "../middleware/auth.js";
 import { sendMail } from "../config/mailer.js";
+import { appUrl } from "../config/appUrl.js";
 
 const router = express.Router();
 const CUSTOMER_COOKIE_NAME = "ds_customer_token";
@@ -22,12 +23,6 @@ const cookieOptions = {
 
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
 const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
-
-// Base URL for links in emails: APP_URL, else the first allowed client origin.
-const appUrl = () =>
-  (process.env.APP_URL || String(process.env.CLIENT_ORIGINS || "").split(",")[0] || "http://localhost:3000")
-    .trim()
-    .replace(/\/$/, "");
 
 const issueCustomerSession = (res, customer) => {
   const token = jwt.sign({ sub: customer._id, role: "customer" }, process.env.JWT_SECRET, {

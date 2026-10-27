@@ -10,6 +10,8 @@ import doctorRoutes from "./routes/doctors.js";
 import availabilityRoutes from "./routes/availability.js";
 import medicineRoutes from "./routes/medicines.js";
 import searchRoutes from "./routes/search.js";
+import reminderRoutes from "./routes/reminders.js";
+import { startRefillReminderJob } from "./jobs/refillReminders.js";
 import { apiLimiter, authLimiter } from "./middleware/rateLimit.js";
 
 const app = express();
@@ -61,6 +63,7 @@ app.use("/doctors", doctorRoutes);
 app.use("/availability", availabilityRoutes);
 app.use("/medicines", medicineRoutes);
 app.use("/search", searchRoutes);
+app.use("/reminders", reminderRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -97,6 +100,7 @@ const seedInitialAdmin = async () => {
 };
 
 await seedInitialAdmin();
+startRefillReminderJob();
 
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);

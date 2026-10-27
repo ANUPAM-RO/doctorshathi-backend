@@ -684,6 +684,10 @@ router.post("/ai/prescription-explain", async (req, res) => {
   }
 });
 
+const INTERACTION_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const INTERACTION_CACHE_LIMIT = 500;
+const interactionCache = new Map();
+
 router.post("/ai/check-interactions", async (req, res) => {
   try {
     const medicines = Array.isArray(req.body?.medicines)
@@ -699,10 +703,21 @@ router.post("/ai/check-interactions", async (req, res) => {
 
     if (!openaiClient) {
       return res.json({
+        available: false,
         riskLevel: "unknown",
         warnings: ["AI interaction checker unavailable without OPENAI_API_KEY."],
         recommendation: "Consult a licensed pharmacist before combining medicines."
       });
+    }
+
+    // Checkout re-checks the same cart often; reuse recent answers instead of calling the model again.
+    const cacheKey = JSON.stringify([
+      [...medicines].map((m) => m.toLowerCase()).sort(),
+      [...allergies].map((a) => a.toLowerCase()).sort()
+    ]);
+    const cached = interactionCache.get(cacheKey);
+    if (cached && cached.expires > Date.now()) {
+      return res.json(cached.result);
     }
 
     const response = await openaiClient.responses.create({
@@ -741,6 +756,10 @@ Return strict JSON with keys: riskLevel ("low"|"moderate"|"high"|"unknown"), war
         recommendation: "Consult a licensed pharmacist before combining medicines."
       });
     }
+    if (interactionCache.size >= INTERACTION_CACHE_LIMIT) {
+      interactionCache.delete(interactionCache.keys().next().value);
+    }
+    interactionCache.set(cacheKey, { result: parsed, expires: Date.now() + INTERACTION_CACHE_TTL_MS });
     return res.json(parsed);
   } catch (_error) {
     return res.status(500).json({ message: "Interaction check failed" });
@@ -998,23 +1017,36 @@ router.post("/orders/razorpay/verify", requireCustomerAuth, async (req, res) => 
 
 router.get("/orders/track", async (req, res) => {
   try {
-    const orderId = String(req.query.orderId || "").trim();
+    // Accepts the full order id or the short "#AB12CD" code shown to customers (its last 6 characters).
+    const orderId = String(req.query.orderId || "")
+      .trim()
+      .replace(/^#/, "")
+      .toLowerCase();
     const email = String(req.query.email || "")
       .trim()
       .toLowerCase();
 
-    if (!orderId || !mongoose.isValidObjectId(orderId) || !email) {
-      return res.status(400).json({ message: "orderId and email are required." });
+    if (!email || !(mongoose.isValidObjectId(orderId) || /^[0-9a-f]{6}$/.test(orderId))) {
+      return res.status(400).json({ message: "Enter your order number and the email used for the order." });
     }
 
-    const order = await Order.findOne({ _id: orderId, customerEmail: email }).lean();
+    const order =
+      orderId.length === 6
+        ? (await Order.find({ customerEmail: email }).sort({ createdAt: -1 }).limit(200).lean()).find((candidate) =>
+            String(candidate._id).endsWith(orderId)
+          )
+        : await Order.findOne({ _id: orderId, customerEmail: email }).lean();
     if (!order) {
-      return res.status(404).json({ message: "Order not found." });
+      return res.status(404).json({ message: "We couldn't find an order with that number and email." });
     }
 
     return res.json({
       orderId: order._id,
       status: order.status,
+      verificationNote: order.verificationNote,
+      items: order.items.map((item) => ({ medicineName: item.medicineName, quantity: item.quantity })),
+      itemsTotal: order.itemsTotal ?? order.totalAmount,
+      deliveryFee: order.deliveryFee || 0,
       totalAmount: order.totalAmount,
       paymentMethod: order.paymentMethod,
       paymentStatus: order.paymentStatus,
